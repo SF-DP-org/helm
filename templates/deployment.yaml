@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.app.port }}
+          volumeMounts:
+            - name: app-volume
+              mountPath: /app
+          command: ["/bin/sh", "-c", "{{ .Values.app.command }}"]
+          env:
+            - name: DB_HOST
+              value: "{{ .Values.app.environment.DB_HOST }}"
+            - name: DB_NAME
+              value: "{{ .Values.app.environment.DB_NAME }}"
+            - name: DB_USER
+              value: "{{ .Values.app.environment.DB_USER }}"
+            - name: DB_PASS
+              value: "{{ .Values.app.environment.DB_PASS }}"
+      volumes:
+        - name: app-volume
+          hostPath:
+            path: /app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.db.port }}
+          env:
+            - name: POSTGRES_DB
+              value: "{{ .Values.db.environment.POSTGRES_DB }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.db.environment.POSTGRES_USER }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.db.environment.POSTGRES_PASSWORD }}"
+          volumeMounts:
+            - name: db-volume
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-volume
+          persistentVolumeClaim:
+            claimName: db-pvc

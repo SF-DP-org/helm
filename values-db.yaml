@@ -1,0 +1,11 @@
+db:
+  image:
+    repository: postgres
+    tag: 13-alpine
+  environment:
+    POSTGRES_DB: tutorial-dev
+    POSTGRES_USER: vinhle
+    POSTGRES_PASSWORD: password
+  port: 5432
+volumes:
+  dbVolume: tutorial-volume
